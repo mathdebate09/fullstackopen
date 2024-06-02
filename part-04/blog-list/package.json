@@ -1,0 +1,36 @@
+{
+  "name": "blog-list",
+  "version": "1.0.0",
+  "description": "Coursework-FSO Part 4",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node index.js",
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "test": "cross-env NODE_ENV=test node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mathdebate09/blog-list.git"
+  },
+  "author": "Jay Singh",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mathdebate09/blog-list/issues"
+  },
+  "homepage": "https://github.com/mathdebate09/blog-list#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-async-errors": "^3.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.0",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.1.1",
+    "supertest": "^7.0.0"
+  }
+}
