@@ -1,11 +1,12 @@
 const { ApolloServer } = require('@apollo/server')
 const { startStandaloneServer } = require('@apollo/server/standalone')
+const { GraphQLError } = require('graphql')
 const { v1: uuid } = require('uuid')
 const jwt = require('jsonwebtoken')
 
 const Book = require('./models/book')
 const Author = require('./models/author')
-const User = require('./models/user')
+const User = require('./models/users')
 
 let authors = [
   {
@@ -175,32 +176,34 @@ const resolvers = {
     bookCount: async () => Book.collection.countDocuments(),
     authorCount: async () => Author.collection.countDocuments(),
     allBooks: async (root, args, context) => {
-      let filteredBooks = Book.find({});
+      let allBooks = await Book.find({}).populate('author');
       if (args.author) {
-        filteredBooks = filteredBooks.filter(book => book.author === args.author);
+        allBooks = allBooks.filter(book => book.author.name === args.author);
       }
       if (args.genre) {
-        filteredBooks = filteredBooks.filter(book => book.genres.includes(args.genre));
+        allBooks = allBooks.filter(book => book.genres.includes(args.genre));
       }
-      return filteredBooks;
+      return allBooks;
     },
-    allAuthors: () => Author.find({}),
+    allAuthors: async () => await Author.find({}),
   },
 
-  Author: {
-    bookCount: (root, args, context) => {
-      const authorBooks = Book.find({}).filter(book => book.author === args.name)
-      return authorBooks.length
-    }
-  },
+ Author: {
+  bookCount: async (root, args, context) => {
+    const allBooks = await Book.find({}).populate('author');
+    // console.log(allBooks)
+    const authorBooks = allBooks.filter(book => book.author.name === args.name)
+    return authorBooks.length;
+  }
+},
 
   Mutation: {
     addBook: async (root, args, context) => {
-      const book = new Book ({...args, id: uuid()})
-      
+      const book = new Book({ ...args, id: uuid() })
+
       try {
         await book.save()
-      } catch(error) {
+      } catch (error) {
         throw new GraphQLError('Saving book failed', {
           extensions: {
             code: 'BAD_USER_INPUT',
@@ -230,7 +233,7 @@ const resolvers = {
 
     createUser: async (root, args) => {
       const user = new User({ username: args.username })
-  
+
       return user.save()
         .catch(error => {
           throw new GraphQLError('Creating the user failed', {
@@ -245,18 +248,18 @@ const resolvers = {
 
     login: async (root, args) => {
       const user = await User.findOne({ username: args.username })
-  
-      if ( !user || args.password !== 'secret' ) {
+
+      if (!user || args.password !== 'secret') {
         throw new GraphQLError('wrong credentials', {
           extensions: { code: 'BAD_USER_INPUT' }
-        })        
+        })
       }
-  
+
       const userForToken = {
         username: user.username,
         id: user._id,
       }
-  
+
       return { value: jwt.sign(userForToken, process.env.JWT_SECRET) }
     }
   }
